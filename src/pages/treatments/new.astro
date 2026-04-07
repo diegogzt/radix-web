@@ -1,0 +1,24 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import TreatmentForm from '@components/treatments/TreatmentForm';
+import { getPatients, getRadioisotopes, getUnitCatalog, getAvailableWatches, getFacultatiu } from '@lib/queries';
+
+const [patients, radioisotopes, units, watches, doctors] = await Promise.all([
+  getPatients(),
+  getRadioisotopes(),
+  getUnitCatalog(),
+  getAvailableWatches(),
+  getFacultatiu(),
+]);
+---
+
+<MainLayout title="Nuevo Tratamiento" subtitle="Configurar terapia de aislamiento domiciliario">
+  <TreatmentForm
+    client:load
+    patients={patients}
+    radioisotopes={radioisotopes}
+    units={units}
+    watches={watches}
+    doctors={doctors}
+  />
+</MainLayout>

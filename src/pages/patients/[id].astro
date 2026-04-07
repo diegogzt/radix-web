@@ -1,0 +1,17 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import PatientForm from '@components/patients/PatientForm';
+import { getPatientById } from '@lib/queries';
+
+const { id } = Astro.params;
+
+const patient = await getPatientById(Number(id));
+
+if (!patient) {
+  return Astro.redirect('/patients');
+}
+---
+
+<MainLayout title="Editar Paciente" subtitle={patient.name}>
+  <PatientForm client:load patient={patient} />
+</MainLayout>

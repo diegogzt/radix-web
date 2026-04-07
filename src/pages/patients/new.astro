@@ -1,0 +1,8 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import PatientForm from '@components/patients/PatientForm';
+---
+
+<MainLayout title="Nuevo Paciente" subtitle="Registrar un nuevo paciente">
+  <PatientForm client:load />
+</MainLayout>

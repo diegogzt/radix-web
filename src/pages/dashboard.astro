@@ -1,0 +1,59 @@
+---
+const userCookie = Astro.cookies.get('radix-user')?.value;
+let userText = "Usuario Desconocido";
+if (userCookie) {
+  try {
+    const user = JSON.parse(decodeURIComponent(userCookie));
+    userText = user.firstName || user.email || 'Médico';
+  } catch (e) {
+    userText = decodeURIComponent(userCookie);
+  }
+}
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Exitoso</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+    .container {
+      background: white;
+      padding: 3rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      text-align: center;
+      max-width: 500px;
+    }
+    h1 { margin-top: 0; color: #111827; }
+    p { margin-bottom: 2rem; color: #4b5563; }
+    .btn {
+      background-color: #3b82f6;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>¡Bienvenido, {userText}!</h1>
+    <p>Has iniciado sesión correctamente.</p>
+    <p class="text-sm">El resto de la aplicación está bloqueado en esta rama.</p>
+    <a href="/login" class="btn">Volver al login</a>
+  </div>
+</body>
+</html>

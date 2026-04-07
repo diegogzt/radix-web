@@ -1,0 +1,23 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import TreatmentHistoryTable from '@components/treatments/TreatmentHistoryTable';
+import { getCompletedTreatments } from '@lib/queries';
+
+let treatments = [];
+let errorMsg = '';
+
+try {
+  treatments = await getCompletedTreatments();
+} catch (err) {
+  errorMsg = err instanceof Error ? err.message : 'Error al cargar historial';
+}
+---
+
+<MainLayout title="Historial de Tratamientos" subtitle="Tratamientos completados y archivados">
+  {errorMsg && (
+    <div class="mb-6 rounded-xl border border-red-200/60 bg-red-50/80 px-4 py-3 text-sm text-red-700 backdrop-blur-sm">
+      {errorMsg}
+    </div>
+  )}
+  <TreatmentHistoryTable client:load treatments={treatments} />
+</MainLayout>

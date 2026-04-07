@@ -1,0 +1,28 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import LiveMetricsPanel from '@components/monitoring/LiveMetricsPanel';
+import { getTreatmentById, getHealthMetrics } from '@lib/queries';
+
+const { treatmentId } = Astro.params;
+
+const treatment = await getTreatmentById(Number(treatmentId));
+
+if (!treatment) {
+  return Astro.redirect('/dashboard');
+}
+
+const metrics = await getHealthMetrics(treatment.id, 100);
+const patientName = treatment.Patient?.name ?? 'Paciente';
+---
+
+<MainLayout
+  title={`Monitoreo: ${patientName}`}
+  subtitle={`${treatment.Radioisotope?.name ?? 'Isotopo'} - Tratamiento #${treatment.id}`}
+>
+  <LiveMetricsPanel
+    client:load
+    treatmentId={treatment.id}
+    initialMetrics={metrics}
+    treatment={treatment}
+  />
+</MainLayout>

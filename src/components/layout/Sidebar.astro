@@ -1,0 +1,109 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const navItems = [
+  { href: '/dashboard',         label: 'Dashboard',         icon: 'home' },
+  { href: '/patients',          label: 'Pacientes',          icon: 'users' },
+  { href: '/treatments/new',    label: 'Nuevo Tratamiento',  icon: 'plus-circle' },
+  { href: '/monitoring',        label: 'Monitoreo en Vivo',  icon: 'activity' },
+  { href: '/treatments/history',label: 'Historial',          icon: 'clock' },
+  { href: '/settings',          label: 'Ajustes',            icon: 'settings' },
+];
+
+function isActive(href: string): boolean {
+  if (href === '/dashboard') return currentPath === '/dashboard' || currentPath === '/';
+  return currentPath.startsWith(href);
+}
+---
+
+<aside class="relative flex h-full w-64 flex-col overflow-hidden bg-sidebar shadow-2xl">
+
+  <!-- Dot grid texture -->
+  <div class="pointer-events-none absolute inset-0 bg-dot-grid-dark"></div>
+
+  <!-- Subtle top gradient fade -->
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-radix-900/20 to-transparent"></div>
+
+  <!-- Logo -->
+  <div class="relative z-10 flex h-16 shrink-0 items-center gap-3 border-b border-white/6 px-5">
+    <!-- Icon mark -->
+    <div class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-radix-600/25 ring-1 ring-radix-500/30">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-radix-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
+        <circle cx="12" cy="12" r="10"></circle>
+        <circle cx="12" cy="12" r="3"></circle>
+        <line x1="12" y1="2" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="22"></line>
+        <line x1="2" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="22" y2="12"></line>
+      </svg>
+    </div>
+    <div>
+      <span class="font-display text-[17px] font-bold tracking-[0.12em] text-white">RADIX</span>
+      <p class="text-[9px] font-semibold uppercase tracking-[0.22em] text-white/30 leading-none mt-0.5">MedPanel</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="relative z-10 flex-1 space-y-0.5 overflow-y-auto px-3 py-5">
+    <div class="mb-3 px-3 text-[9px] font-bold uppercase tracking-[0.18em] text-white/20">
+      Navegación
+    </div>
+
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class:list={[
+          'nav-item',
+          isActive(item.href) ? 'nav-item--active' : 'nav-item--inactive',
+        ]}
+      >
+        <!-- Icon -->
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            {item.icon === 'home'        && <Fragment><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></Fragment>}
+            {item.icon === 'users'       && <Fragment><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></Fragment>}
+            {item.icon === 'plus-circle' && <Fragment><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></Fragment>}
+            {item.icon === 'activity'    && <Fragment><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></Fragment>}
+            {item.icon === 'clock'       && <Fragment><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></Fragment>}
+            {item.icon === 'settings'    && <Fragment><circle cx="12" cy="12" r="3"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></Fragment>}
+          </svg>
+        </span>
+        <span>{item.label}</span>
+
+        <!-- Active glow dot -->
+        {isActive(item.href) && (
+          <span class="ml-auto h-1.5 w-1.5 rounded-full bg-radix-400 shadow-[0_0_6px_rgba(152,120,250,0.8)]"></span>
+        )}
+      </a>
+    ))}
+  </nav>
+
+  <!-- Footer -->
+  <div class="relative z-10 border-t border-white/6 p-4 space-y-3">
+
+    <!-- System status -->
+    <div class="flex items-center gap-2.5 rounded-lg bg-white/4 px-3 py-2">
+      <span class="live-dot shrink-0"></span>
+      <span class="text-[11px] font-medium text-white/40 tracking-wide">Sistema activo</span>
+    </div>
+
+    <!-- Logout -->
+    <a
+      href="/api/auth/logout"
+      class="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/35 transition-colors hover:bg-red-500/10 hover:text-red-400"
+    >
+      <div class="flex h-7 w-7 items-center justify-center rounded-md bg-white/5 transition-colors group-hover:bg-red-500/15">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      Cerrar Sesión
+    </a>
+  </div>
+</aside>
