@@ -1,0 +1,11 @@
+---
+import MainLayout from '@layouts/MainLayout.astro';
+import PatientTable from '@components/patients/PatientTable';
+import { getPatients } from '@lib/queries';
+
+const patients = await getPatients();
+---
+
+<MainLayout title="Gestion de Pacientes" subtitle="Administrar registros de pacientes">
+  <PatientTable client:load patients={patients} />
+</MainLayout>

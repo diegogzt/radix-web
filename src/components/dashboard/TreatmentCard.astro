@@ -1,0 +1,160 @@
+---
+import type { TreatmentWithDetails } from '@lib/types';
+import {
+  calculateCurrentRadiation,
+  radiationDecayPercentage,
+  daysRemaining,
+  formatDate,
+  batteryColor,
+} from '@lib/utils';
+
+interface Props {
+  treatment: TreatmentWithDetails;
+}
+
+const { treatment } = Astro.props;
+const patient = treatment.Patient;
+const radioisotope = treatment.Radioisotope;
+const watch = treatment.Dispositiu_Rellotge;
+const doctor = treatment.Facultatiu;
+const unit = treatment.UnitCatalog;
+
+const remaining = daysRemaining(treatment.expected_end_date);
+
+const currentRad =
+  treatment.initial_radiation && radioisotope?.half_life
+    ? calculateCurrentRadiation(treatment.initial_radiation, radioisotope.half_life, treatment.start_date)
+    : null;
+
+const decayPercent =
+  treatment.initial_radiation && radioisotope?.half_life
+    ? radiationDecayPercentage(treatment.initial_radiation, radioisotope.half_life, treatment.start_date)
+    : 0;
+
+const batteryLevel = watch?.nivell_bateria ?? 0;
+const batColor = batteryColor(batteryLevel);
+
+// Determine border color based on status
+let borderColorClass = 'border-l-green-500';
+let statusBgClass = 'bg-green-50 text-green-700 ring-1 ring-green-600/20';
+let statusText = 'ACTIVO';
+
+if (remaining !== null && remaining <= 0) {
+  borderColorClass = 'border-l-gray-400';
+  statusBgClass = 'bg-gray-100 text-gray-700 ring-1 ring-gray-600/20';
+  statusText = 'FINALIZADO';
+} else if (remaining !== null && remaining <= 2) {
+  borderColorClass = 'border-l-amber-500';
+  statusBgClass = 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20';
+  statusText = 'POR VENCER';
+}
+---
+
+<div class={`card relative flex flex-col justify-between overflow-hidden p-5 border-l-4 ${borderColorClass}`}>
+  <!-- Decorative top gradient depending on status -->
+  <div class="absolute right-0 top-0 -mr-12 -mt-12 h-32 w-32 rounded-full bg-radix-50 opacity-50 blur-2xl"></div>
+
+  <div>
+    <!-- Header: Patient name + status -->
+    <div class="mb-5 flex items-start justify-between">
+      <div>
+        <h3 class="text-base font-bold tracking-tight text-gray-900 group-hover:text-radix-600 transition-colors">
+          {patient?.name ?? 'Paciente desconocido'}
+        </h3>
+        {patient?.phone && (
+          <p class="mt-0.5 text-xs font-medium text-gray-500 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            {patient.phone}
+          </p>
+        )}
+      </div>
+      <span class={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusBgClass}`}>
+        {statusText}
+      </span>
+    </div>
+
+    <!-- Radioisotope -->
+    <div class="mb-5 flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-radix-50 to-radix-100 ring-1 ring-radix-200/50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-radix-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-gray-900">{radioisotope?.name ?? '-'}</p>
+        <p class="text-xs font-medium text-gray-500">
+          Dosis inicial: <span class="text-gray-700">{treatment.initial_radiation} {unit?.symbol ?? 'MBq'}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Radiation decay progress -->
+    <div class="mb-5 rounded-lg bg-gray-50/80 p-3 ring-1 ring-gray-200/50">
+      <div class="mb-2 flex items-end justify-between text-xs">
+        <span class="font-medium text-gray-600">Nivel actual</span>
+        {currentRad !== null && (
+          <span class="text-sm font-bold text-radix-700">
+            {currentRad.toFixed(2)} <span class="text-xs font-medium text-radix-500">{unit?.symbol ?? 'MBq'}</span>
+          </span>
+        )}
+      </div>
+      <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200/80">
+        <div
+          class="h-full rounded-full bg-gradient-to-r from-radix-400 to-radix-600 transition-all duration-1000 ease-out"
+          style={`width: ${Math.min(100, Math.max(5, decayPercent))}%`}
+        ></div>
+      </div>
+      <div class="mt-1.5 flex justify-between text-[10px] font-semibold tracking-wider text-gray-400">
+        <span>INICIO</span>
+        <span class="text-radix-600">{decayPercent.toFixed(1)}% RESTANTE</span>
+        <span>FIN</span>
+      </div>
+    </div>
+
+    <!-- Info grid -->
+    <div class="mb-5 grid grid-cols-2 gap-3">
+      <!-- Days remaining -->
+      <div class="flex flex-col justify-center rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+        <p class="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Restante</p>
+        <p class:list={[
+          'text-xl font-bold tracking-tight',
+          remaining !== null && remaining <= 2 ? 'text-amber-600' : 'text-gray-900',
+          remaining !== null && remaining <= 0 ? 'text-gray-400' : '',
+        ]}>
+          {remaining !== null ? (remaining > 0 ? `${remaining} días` : 'Completado') : '-'}
+        </p>
+      </div>
+
+      <!-- Watch battery -->
+      <div class="flex flex-col justify-center rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+        <p class="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Batería reloj</p>
+        <div class="flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class={`h-5 w-5 ${batColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
+            <line x1="23" y1="13" x2="23" y2="11" />
+          </svg>
+          <span class={`text-xl font-bold tracking-tight ${batColor}`}>{batteryLevel}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-auto">
+    <!-- Doctor + dates (subtle) -->
+    <div class="mb-4 flex flex-col gap-1 text-[10px] sm:flex-row sm:items-center sm:justify-between font-medium text-gray-400">
+      {doctor && <span class="flex items-center gap-1"><svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dr. {doctor.nom}</span>}
+      <span class="flex items-center gap-1"><svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{formatDate(treatment.expected_end_date)}</span>
+    </div>
+
+    <!-- Action -->
+    <a
+      href={`/monitoring/${treatment.id}`}
+      class="btn-outline w-full shadow-sm group hover:border-radix-600 hover:text-radix-700 hover:shadow-glow focus:ring-2 focus:ring-radix-200"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+      Monitorización en Vivo
+    </a>
+  </div>
+</div>

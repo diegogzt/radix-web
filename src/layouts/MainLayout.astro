@@ -1,0 +1,93 @@
+---
+import Sidebar from '@components/layout/Sidebar.astro';
+import Header from '@components/layout/Header.astro';
+import { ClientRouter } from 'astro:transitions';
+import '@styles/global.css';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  pageTitle?: string;
+}
+
+const { title, subtitle, pageTitle } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="RADIX - Panel Medico de Monitoreo Radioactivo" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle ?? title} | RADIX</title>
+    <ClientRouter />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="h-screen overflow-hidden bg-bg-secondary font-sans text-gray-900 antialiased">
+    <!-- Subtle dot pattern -->
+    <div class="pointer-events-none fixed inset-0 bg-dot-grid opacity-60"></div>
+
+    <div class="relative flex h-full">
+      <!-- Sidebar (hidden on mobile) -->
+      <div class="hidden lg:block animate-slide-up">
+        <Sidebar currentPath={currentPath} />
+      </div>
+
+      <!-- Mobile sidebar overlay -->
+      <div id="mobile-sidebar-overlay" class="fixed inset-0 z-40 hidden lg:hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" data-close-sidebar></div>
+        <div class="relative h-full w-64 shadow-2xl">
+          <Sidebar currentPath={currentPath} />
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="flex flex-1 flex-col overflow-hidden">
+        <!-- Mobile header with hamburger -->
+        <div class="flex items-center gap-2 border-b border-gray-200/60 bg-white/90 px-4 py-2 backdrop-blur-md lg:hidden">
+          <button
+            id="mobile-menu-btn"
+            class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-radix-50 hover:text-radix-600"
+            aria-label="Abrir menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <span class="font-display text-lg font-bold tracking-wide text-radix-700">RADIX</span>
+        </div>
+
+        <Header title={title} subtitle={subtitle} />
+
+        <main class="flex-1 overflow-y-auto p-6 animate-fade-in">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      const overlay = document.getElementById('mobile-sidebar-overlay');
+      const closeBtns = overlay?.querySelectorAll('[data-close-sidebar]');
+
+      menuBtn?.addEventListener('click', () => {
+        overlay?.classList.toggle('hidden');
+      });
+
+      closeBtns?.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          overlay?.classList.add('hidden');
+        });
+      });
+    </script>
+  </body>
+</html>
